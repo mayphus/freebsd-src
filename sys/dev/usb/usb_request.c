@@ -2113,6 +2113,11 @@ retry:
 		    old_addr, usbd_errstr(err));
 		goto done;
 	}
+	if (udev->flags.usb3_hub_lpm_quirk) {
+		err = usbd_disable_usb3_hub_lpm(udev, mtx);
+		if (err)
+			goto done;
+	}
 
 	/*
 	 * After that the port has been reset our device should be at
@@ -2342,4 +2347,21 @@ usbd_req_set_lpm_info(struct usb_device *udev, struct mtx *mtx,
 		break;
 	}
 	return (err);
+}
+
+/* Disable hub-initiated U1/U2 through the parent-port timers. */
+usb_error_t
+usbd_disable_usb3_hub_lpm(struct usb_device *udev, struct mtx *mtx)
+{
+	struct usb_device *hub;
+	usb_error_t err1, err2;
+
+	if (udev->speed != USB_SPEED_SUPER ||
+	    udev->flags.usb_mode != USB_MODE_HOST || udev->parent_hub == NULL)
+		return (USB_ERR_NORMAL_COMPLETION);
+
+	hub = udev->parent_hub;
+	err1 = usbd_req_set_hub_u1_timeout(hub, mtx, udev->port_no, 0);
+	err2 = usbd_req_set_hub_u2_timeout(hub, mtx, udev->port_no, 0);
+	return (err1 ? err1 : err2);
 }

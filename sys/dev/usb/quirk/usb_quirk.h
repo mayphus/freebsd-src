@@ -118,6 +118,8 @@ enum {
 	UQ_AU_SET_SPDIF_CM6206,	/* enable S/PDIF audio output */
 	UQ_WMT_IGNORE,          /* device should be ignored by wmt driver */
 
+	UQ_NO_USB3_HUB_LPM,	/* no hub-initiated U1/U2 */
+
 	USB_QUIRK_MAX
 };
 

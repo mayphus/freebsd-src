@@ -1972,6 +1972,14 @@ usb_alloc_device(device_t parent_dev, struct usb_bus *bus,
 	if (usb_test_quirk(&uaa, UQ_NO_STRINGS)) {
 		udev->flags.no_strings = 1;
 	}
+	if (udev->speed == USB_SPEED_SUPER &&
+	    udev->flags.usb_mode == USB_MODE_HOST &&
+	    usb_test_quirk(&uaa, UQ_NO_USB3_HUB_LPM)) {
+		udev->flags.usb3_hub_lpm_quirk = 1;
+		err = usbd_disable_usb3_hub_lpm(udev, NULL);
+		if (err)
+			goto done;
+	}
 
 	usb_get_langid(udev);
 
